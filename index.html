@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boogeyman | Nightmaretown Faculty</title>
+    <style>
+        :root {
+            --shadow-black: #0a0a0c;
+            --ghastly-purple: #2d1b4e;
+            --ectoplasm-green: #39ff14;
+            --parchment: #e2e8f0;
+            --blood-orange: #ff4500;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--shadow-black);
+            color: var(--parchment);
+            font-family: 'Courier New', Courier, monospace;
+            background-image: 
+                radial-gradient(at 20% 20%, rgba(45, 27, 78, 0.4) 0px, transparent 50%),
+                radial-gradient(at 80% 70%, rgba(57, 255, 20, 0.08) 0px, transparent 50%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .profile-card {
+            background: rgba(15, 15, 20, 0.85);
+            border: 2px solid var(--ghastly-purple);
+            border-radius: 8px;
+            width: 100%;
+            max-width: 650px;
+            padding: 40px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.7), 0 0 15px rgba(45, 27, 78, 0.5);
+            position: relative;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Ambient glowing corner effect */
+        .profile-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 8px;
+            background: linear-gradient(45deg, transparent, var(--ghastly-purple), transparent, var(--ectoplasm-green));
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 1px double var(--ghastly-purple);
+            padding-bottom: 25px;
+            margin-bottom: 25px;
+        }
+
+        .avatar-area {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            animation: float 4s ease-in-out infinite;
+            display: inline-block;
+            filter: drop-shadow(0 0 10px rgba(57, 255, 20, 0.4));
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            color: var(--parchment);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            margin-bottom: 5px;
+        }
+
+        .title-tag {
+            color: var(--ectoplasm-green);
+            font-size: 1rem;
+            text-transform: lowercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .institution {
+            font-size: 0.85rem;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        .section-title {
+            color: var(--ghastly-purple);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            border-left: 3px solid var(--ectoplasm-green);
+            padding-left: 10px;
+            background: linear-gradient(90deg, rgba(57, 255, 20, 0.05), transparent);
+        }
+
+        .bio-content {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: #94a3b8;
+            margin-bottom: 25px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-item {
+            background: rgba(45, 27, 78, 0.2);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 12px;
+            border-radius: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 0.9rem;
+            color: var(--parchment);
+        }
+
+        footer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #475569;
+            margin-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 20px;
+        }
+
+        footer a {
+            color: var(--ectoplasm-green);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(3deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        /* Subtle flicker for spooky realism */
+        @keyframes flicker {
+            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+            20%, 24%, 55% { opacity: 0.85; }
+        }
+
+        .flicker-element {
+            animation: flicker 6s infinite;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="profile-card">
+        <header>
+            <div class="avatar-area">👹</div>
+            <h1 class="flicker-element">Boogeyman</h1>
+            <div class="title-tag">boogey oogey spooky lil boy</div>
+            <div class="institution">Department of Under-Bed Operations, Nightmaretown</div>
+        </header>
+
+        <main>
+            <div class="section-title">Professional Objective</div>
+            <p class="bio-content">
+                Specializing in structural bump-in-the-night dynamics, closet-door creaking optimization, and localized draft manufacturing. Dedicated to maintaining the rigorous psychological fright thresholds expected of the Nightmaretown ecosystem. 
+            </p>
+
+            <div class="section-title">Core Performance Metrics</div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">Primary Office</div>
+                    <div class="stat-value">The Shadow Behind the Coat Rack</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Active Hours</div>
+                    <div class="stat-value">03:00 AM - 04:15 AM (Local Time)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Preferred Medium</div>
+                    <div class="stat-value">Cold Floorboards & Sudden Whispers</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Spook Efficiency</div>
+                    <div class="stat-value">98.4% Blanket-Over-Head Rate</div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2026 Nightmaretown Institutional Directory. <br>Secure communications routed via <a href="#">Spooky-Lil-Boy Net</a>.</p>
+        </footer>
+    </div>
+
+</body>
+</html>
