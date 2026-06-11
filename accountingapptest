@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Accounting Lesson: Debits & Credits</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --gray-dark: #1f2937;
+            --gray-light: #f3f4f6;
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #eec;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--gray-dark);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .classroom-container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            overflow: hidden;
+            border: 4px solid var(--primary);
+        }
+
+        .professor-header {
+            background: var(--primary);
+            color: var(--white);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 4px solid var(--primary-light);
+        }
+
+        .avatar {
+            width: 60px;
+            height: 60px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            border: 2px solid var(--primary-light);
+        }
+
+        .professor-meta h1 {
+            font-size: 1.4rem;
+            margin-bottom: 2px;
+        }
+
+        .professor-meta p {
+            font-size: 0.9rem;
+            color: #93c5fd;
+        }
+
+        .workspace {
+            padding: 30px;
+            min-height: 450px;
+        }
+
+        .dialogue-box {
+            background: var(--gray-light);
+            border-left: 5px solid var(--primary-light);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 25px;
+            font-style: italic;
+        }
+
+        .interactive-zone {
+            margin-bottom: 30px;
+        }
+
+        /* T-Account Styling */
+        .t-account {
+            width: 100%;
+            max-width: 500px;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .t-account th {
+            background: var(--gray-dark);
+            color: white;
+            padding: 10px;
+            font-size: 1.2rem;
+        }
+
+        .t-account-headers td {
+            width: 50%;
+            text-align: center;
+            font-weight: bold;
+            padding: 8px;
+            border-bottom: 3px solid var(--gray-dark);
+            background: #e5e7eb;
+        }
+
+        .t-account-cells td {
+            height: 150px;
+            vertical-align: top;
+            padding: 10px;
+            position: relative;
+        }
+
+        .t-account-cells td:first-child {
+            border-right: 3px solid var(--gray-dark);
+        }
+
+        .side-label {
+            position: absolute;
+            bottom: 5px;
+            font-size: 0.75rem;
+            color: #9ca3af;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .left-label { left: 10px; }
+        .right-label { right: 10px; }
+
+        .entry-item {
+            background: #dbeafe;
+            padding: 5px 10px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 1rem;
+            display: flex;
+            justify-content: space-between;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Equation View */
+        .equation-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0;
+            font-size: 1.3rem;
+            font-weight: bold;
+            flex-wrap: wrap;
+        }
+
+        .eq-card {
+            background: #f8fafc;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 2px dashed #cbd5e1;
+            text-align: center;
+            min-width: 120px;
+            transition: all 0.3s ease;
+        }
+
+        .eq-card.active-debit {
+            border-color: var(--success);
+            background: #ecfdf5;
+            color: #065f46;
+        }
+
+        .eq-card.active-credit {
+            border-color: var(--danger);
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        /* Options/Buttons Grid */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            background: var(--white);
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: var(--primary-light);
+            color: white;
+            border-color: var(--primary-light);
+        }
+
+        .btn-action {
+            background: var(--success);
+            color: white;
+            border: none;
+        }
+        .btn-action:hover {
+            background: #059669;
+        }
+
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 2px solid var(--gray-light);
+            padding-top: 20px;
+        }
+
+        .progress-bar-container {
+            width: 60%;
+            background: var(--gray-light);
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: var(--primary-light);
+            transition: width 0.3s ease;
+        }
+
+        /* Feedback overlays */
+        .feedback {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 500;
+            display: none;
+        }
+        .feedback.correct {
+            display: block;
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        .feedback.incorrect {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="classroom-container">
+    <div class="professor-header">
+        <div class="avatar">👨‍🏫</div>
+        <div class="professor-meta">
+            <h1>Professor Ledger's Accounting 101</h1>
+            <p>Topic: Demystifying Debits & Credits (No Experience Required!)</p>
+        </div>
+    </div>
+
+    <div class="workspace">
+        <div id="dialogue" class="dialogue-box">
+            Welcome to class, team! Grab a seat. Today, we conquer the absolute bedrock of business language: Debits and Credits. Forget anything you think you know about these words from bank statements. Let's start completely fresh.
+        </div>
+
+        <div id="interactive-content" class="interactive-zone">
+            </div>
+
+        <div id="feedback-zone" class="feedback"></div>
+
+        <div class="nav-controls">
+            <div class="progress-bar-container">
+                <div id="progress" class="progress-bar"></div>
+            </div>
+            <button id="next-btn" class="btn btn-action" onclick="lessonEngine.nextStep()">Let's Begin! 🚀</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // State machine management for the interactive lesson
+    class AccountingLesson {
+        constructor() {
+            this.currentStep = 0;
+            this.score = 0;
+            this.selectedAnswer = null;
+            
+            // Define the structural flow of the lecture
+            this.steps = [
+                {
+                    dialogue: "Before we touch numbers, let's establish Rule #1. In accounting, 'Debit' simply means LEFT, and 'Credit' simply means RIGHT. That is it! Do not think of 'debit' as losing money or 'credit' as a reward card. Repeat after me: Debit = Left, Credit = Right.",
+                    render: () => this.showBasicTAccount("Cash Account", [], []),
+                    verify: () => true
+                },
+                {
+                    dialogue: "Beautiful. Now let's introduce the core structure: The Accounting Equation. Everything a business possesses (Assets) must equal who claims it—either the owners (Equity) or lenders (Liabilities). Let's see how our Left and Right rules play out here.",
+                    render: () => this.showEquationLayout(),
+                    verify: () => true
+                },
+                {
+                    dialogue: "Here is the golden mechanism: For ASSETS (like Cash), an increase is recorded on the LEFT (Debit). For LIABILITIES and EQUITY, an increase is recorded on the RIGHT (Credit). Let's practice. If we receive cash, which side does it go on?",
+                    render: () => this.showQuizOptions(
+                        "You just received $5,000 in cash for your business. Cash is an Asset. How do we record this increase?",
+                        [
+                            { text: "Debit (Left Side)", correct: true, feedback: "Spot on! Assets increase with Debits (Left side)." },
+                            { text: "Credit (Right Side)", correct: false, feedback: "Not quite. Remember, Assets live on the left side of our equation, so they increase on the Left (Debit)." }
+                        ]
+                    ),
+                    verify: () => this.selectedAnswer?.correct
+                },
+                {
+                    dialogue: "Excellent! Let's watch it happen. Look at the Cash T-Account below. Notice how the $5,000 sits firmly on the Debit (Left) side. Every transaction has a double effect to keep the equation balanced.",
+                    render: () => this.showBasicTAccount("Cash (Asset)", ["$5,000"], []),
+                    verify: () => true
+                },
+                {
+                    dialogue: "Now, let's flip the coin. What if you spend cash to buy equipment? The cash asset is going DOWN. If assets increase with a debit, they decrease with a...",
+                    render: () => this.showQuizOptions(
+                        "You spend $1,200 cash on a laptop. Cash decreases. Where do we put the decrease?",
+                        [
+                            { text: "Debit (Left Side)", correct: false, feedback: "Careful! If entering money on the left increases an asset, entering it on the opposite side (Right/Credit) must decrease it." },
+                            { text: "Credit (Right Side)", correct: true, feedback: "Perfect! To reduce an asset, you record it on the Credit side." }
+                        ]
+                    ),
+                    verify: () => this.selectedAnswer?.correct
+                },
+                {
+                    dialogue: "Look at our Live Account Ledger now. We started with $5,000 on the Left, and spent $1,200 on the Right. To find out how much cash we have left, we subtract the right from the left. What is our current balance?",
+                    render: () => this.showTAccountWithBalance("Cash (Asset)", ["$5,000"], ["$1,200"], "$3,800 Debit Balance"),
+                    verify: () => true
+                },
+                {
+                    dialogue: "You are natural-born accountants! Graduation is right around the corner. Remember: Debit means Left, Credit means Right, and the equation must always stay perfectly balanced. Ready to conquer your upcoming exams?",
+                    render: () => this.showFinalScreen(),
+                    verify: () => true
+                }
+            ];
+        }
+
+        init() {
+            this.updateUI();
+        }
+
+        updateUI() {
+            const stepData = this.steps[this.currentStep];
+            
+            // Set professor dialog text
+            document.getElementById('dialogue').innerText = stepData.dialogue;
+            
+            // Render interactive zone
+            const zone = document.getElementById('interactive-content');
+            zone.innerHTML = '';
+            stepData.render();
+
+            // Clear feedback
+            const feedbackZone = document.getElementById('feedback-zone');
+            feedbackZone.className = 'feedback';
+            feedbackZone.innerText = '';
+
+            // Update progress bar
+            const pct = (this.currentStep / (this.steps.length - 1)) * 100;
+            document.getElementById('progress').style.width = `${pct}%`;
+
+            // Adjust navigation button text
+            const nextBtn = document.getElementById('next-btn');
+            if (this.currentStep === 0) {
+                nextBtn.innerText = "Let's Begin! 🚀";
+            } else if (this.currentStep === this.steps.length - 1) {
+                nextBtn.innerText = "Finish Class 🎉";
+            } else {
+                nextBtn.innerText = "Continue ➡️";
+            }
+            
+            this.selectedAnswer = null;
+        }
+
+        nextStep() {
+            const stepData = this.steps[this.currentStep];
+            
+            // Validate step completion before advancing
+            if (!stepData.verify()) {
+                const feedbackZone = document.getElementById('feedback-zone');
+                if(!feedbackZone.classList.contains('incorrect') && !feedbackZone.classList.contains('correct')) {
+                    feedbackZone.className = 'feedback incorrect';
+                    feedbackZone.innerText = "Hold on! Let's make sure we select the right answer before moving forward.";
+                }
+                return;
+            }
+
+            if (this.currentStep < this.steps.length - 1) {
+                this.currentStep++;
+                this.updateUI();
+            } else {
+                // Reset presentation loop at end
+                this.currentStep = 0;
+                this.updateUI();
+            }
+        }
+
+        // --- View Compilation Modules ---
+
+        showBasicTAccount(title, debits = [], credits = []) {
+            const zone = document.getElementById('interactive-content');
+            let debitRows = debits.map(d => `<div class="entry-item"><span></span><span>${d}</span></div>`).join('');
+            let creditRows = credits.map(c => `<div class="entry-item"><span>${c}</span><span></span></div>`).join('');
+
+            zone.innerHTML = `
+                <table class="t-account">
+                    <thead>
+                        <tr><th colspan="2">${title}</th></tr>
+                    </thead>
+                    <tr class="t-account-headers">
+                        <td>DEBIT</td>
+                        <td>CREDIT</td>
+                    </tr>
+                    <tr class="t-account-cells">
+                        <td>
+                            ${debitRows}
+                            <span class="side-label left-label">(Left Side)</span>
+                        </td>
+                        <td>
+                            ${creditRows}
+                            <span class="side-label right-label">(Right Side)</span>
+                        </td>
+                    </tr>
+                </table>
+            `;
+        }
+
+        showTAccountWithBalance(title, debits, credits, balanceText) {
+            this.showBasicTAccount(title, debits, credits);
+            const zone = document.getElementById('interactive-content');
+            zone.innerHTML += `
+                <div style="text-align: center; font-weight: bold; margin-top: 15px; color: var(--primary); font-size: 1.2rem;">
+                    Account Balance: ${balanceText}
+                </div>
+            `;
+        }
+
+        showEquationLayout() {
+            const zone = document.getElementById('interactive-content');
+            zone.innerHTML = `
+                <div class="equation-container">
+                    <div class="eq-card active-debit">
+                        Assets
+                        <div style="font-size:0.8rem; color:#64748b; margin-top:5px;">Increases on Left<br>(Debit)</div>
+                    </div>
+                    <div>=</div>
+                    <div class="eq-card active-credit">
+                        Liabilities
+                        <div style="font-size:0.8rem; color:#64748b; margin-top:5px;">Increases on Right<br>(Credit)</div>
+                    </div>
+                    <div>+</div>
+                    <div class="eq-card active-credit">
+                        Equity
+                        <div style="font-size:0.8rem; color:#64748b; margin-top:5px;">Increases on Right<br>(Credit)</div>
+                    </div>
+                </div>
+                <p style="text-align:center; font-size:0.9rem; color:#64748b;">Notice how the equal sign separates how things increase!</p>
+            `;
+        }
+
+        showQuizOptions(questionText, options) {
+            const zone = document.getElementById('interactive-content');
+            
+            let choicesHtml = options.map((opt, idx) => `
+                <button class="btn" onclick="lessonEngine.handleAnswerSelect(${idx}, ${opt.correct}, '${btoa(opt.feedback)}')">
+                    ${opt.text}
+                </button>
+            `).join('');
+
+            zone.innerHTML = `
+                <div style="font-weight: 600; margin-bottom: 15px; text-align: center;">${questionText}</div>
+                <div class="options-grid">${choicesHtml}</div>
+            `;
+        }
+
+        handleAnswerSelect(index, isCorrect, encodedFeedback) {
+            const feedback = atob(encodedFeedback);
+            const feedbackZone = document.getElementById('feedback-zone');
+            
+            this.selectedAnswer = { correct: isCorrect };
+
+            if(isCorrect) {
+                feedbackZone.className = "feedback correct";
+                feedbackZone.innerText = feedback;
+            } else {
+                feedbackZone.className = "feedback incorrect";
+                feedbackZone.innerText = feedback;
+            }
+        }
+
+        showFinalScreen() {
+            const zone = document.getElementById('interactive-content');
+            zone.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <span style="font-size: 4rem;">🎓</span>
+                    <h2 style="color: var(--success); margin: 15px 0;">Congratulations, Accountant!</h2>
+                    <p>You have mastered the core logic of debits, credits, and tracking financial flows. You're fully prepared for next week's deep dive into journal entries!</p>
+                </div>
+            `;
+        }
+    }
+
+    // Fire up the lesson runner on payload mount
+    const lessonEngine = new AccountingLesson();
+    window.onload = () => {
+        lessonEngine.init();
+    };
+</script>
+</body>
+</html>
