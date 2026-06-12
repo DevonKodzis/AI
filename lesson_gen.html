@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Lesson Prompt Generator</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:800px;margin:30px auto;padding:0 16px;background:#f7f7f7;color:#222;}
+h1{font-size:22px;}
+label{display:block;margin-top:14px;font-weight:bold;}
+input,textarea,select{width:100%;padding:8px;margin-top:4px;box-sizing:border-box;font-size:14px;}
+textarea{min-height:60px;}
+fieldset{margin-top:14px;border:1px solid #ccc;border-radius:6px;padding:10px;}
+legend{font-weight:bold;}
+.checks label{font-weight:normal;display:inline-flex;align-items:center;width:48%;position:relative;}
+.checks label input{width:auto;margin:0 6px 0 0;}
+.inline-check{font-weight:normal;display:flex;align-items:center;gap:6px;margin-top:14px;}
+.inline-check input{width:auto;}
+.counter{font-size:12px;color:#666;text-align:right;margin-top:2px;}
+.tooltip{display:inline-block;margin-left:4px;cursor:help;color:#0066cc;font-weight:bold;font-size:12px;border:1px solid #0066cc;border-radius:50%;width:14px;height:14px;text-align:center;line-height:14px;}
+.tooltip:hover .tip-text{display:block;}
+.tip-text{display:none;position:absolute;background:#333;color:#fff;font-size:12px;padding:6px 8px;border-radius:4px;width:200px;top:-5px;left:20px;z-index:10;font-weight:normal;}
+.error{border:2px solid #cc0000 !important;}
+button{margin-top:16px;padding:10px 18px;font-size:15px;cursor:pointer;}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;}
+#output{white-space:pre-wrap;background:#fff;border:1px solid #ccc;border-radius:6px;padding:12px;margin-top:16px;min-height:100px;}
+.errmsg{color:#cc0000;font-size:13px;margin-top:4px;display:none;}
+.radio-row{display:flex;gap:20px;margin-top:6px;}
+.radio-row label{font-weight:normal;display:flex;align-items:center;gap:6px;margin-top:0;}
+.radio-row input{width:auto;}
+</style>
+</head>
+<body>
+<h1>Lesson Prompt Generator</h1>
+<p>Fill in the fields below, then click "Generate Prompt" to create a prompt you can paste into ChatGPT, Claude, or any AI tool. Your entries are automatically saved in this browser.</p>
+
+<label>Preset Template (optional)</label>
+<select id="preset" onchange="applyPreset()">
+  <option value="">-- None / Start blank --</option>
+  <option value="biolab">Intro Biology Lab</option>
+  <option value="writing">Writing Seminar</option>
+  <option value="history">History Discussion-Based Lesson</option>
+  <option value="math">Math Skills & Problem Solving</option>
+</select>
+
+<label>Lesson Title <span style="color:#cc0000">*</span></label>
+<input id="title" placeholder="e.g. Introduction to Cellular Respiration">
+<div class="errmsg" id="err-title">Please enter a lesson title.</div>
+
+<label>Learning Objectives (one per line) <span style="color:#cc0000">*</span></label>
+<textarea id="objectives" placeholder="By the end of this lesson, students will be able to..." oninput="updateCount('objectives')"></textarea>
+<div class="counter" id="count-objectives">0 words</div>
+<div class="errmsg" id="err-objectives">Please enter at least one learning objective.</div>
+
+<label>Topics Covered (one per line)</label>
+<textarea id="topics" oninput="updateCount('topics')"></textarea>
+<div class="counter" id="count-topics">0 words</div>
+
+<label>Key Terms (comma separated)</label>
+<input id="terms" placeholder="e.g. mitochondria, ATP, glycolysis">
+
+<label>Audience</label>
+<input id="audience" placeholder="e.g. Community college, intro biology, mixed-level adults">
+
+<fieldset>
+<legend>Types of Activities to Include</legend>
+<div class="checks">
+<label><input type="checkbox" value="interactive learning activities"> Interactive learning activities
+  <span class="tooltip">?<span class="tip-text">Polls, discussions, think-pair-share, games, or hands-on exercises during class to boost engagement.</span></span>
+</label>
+<label><input type="checkbox" value="team projects"> Team projects
+  <span class="tooltip">?<span class="tip-text">Collaborative assignments where students work in groups toward a shared deliverable.</span></span>
+</label>
+<label><input type="checkbox" value="labs"> Labs
+  <span class="tooltip">?<span class="tip-text">Hands-on, applied exercises (physical or virtual) where students practice or test concepts directly.</span></span>
+</label>
+<label><input type="checkbox" value="assessments"> Assessments
+  <span class="tooltip">?<span class="tip-text">Quizzes, exit tickets, or formal evaluations to measure student understanding of objectives.</span></span>
+</label>
+<label><input type="checkbox" value="case studies"> Case studies
+  <span class="tooltip">?<span class="tip-text">Real or realistic scenarios students analyze and discuss to apply concepts to practical situations.</span></span>
+</label>
+</div>
+</fieldset>
+
+<label class="inline-check"><input type="checkbox" id="ada"> Ensure ADA compliance (suggest accommodations, alt formats, accessibility notes)</label>
+<label class="inline-check"><input type="checkbox" id="analogies"> Include analogies and real-world examples</label>
+
+<label>Output Detail Level</label>
+<div class="radio-row">
+  <label><input type="radio" name="detail" value="detailed" checked> Detailed lesson plan</label>
+  <label><input type="radio" name="detail" value="quick"> Quick outline</label>
+</div>
+
+<label>Additional Notes / Special Requests</label>
+<textarea id="notes" placeholder="Optional: anything else to add"></textarea>
+
+<div class="btnrow">
+<button onclick="generate()">Generate Prompt</button>
+<button onclick="clearForm()">Clear Form</button>
+</div>
+
+<h3>Generated Prompt:</h3>
+<div id="output"></div>
+<div class="btnrow">
+<button onclick="copyOutput()">Copy to Clipboard</button>
+<button onclick="downloadOutput()">Download as .txt</button>
+</div>
+
+<script>
+const fields=['title','objectives','topics','terms','audience','notes'];
+const STORAGE_KEY='lessonPromptGenData';
+
+const presets={
+  biolab:{
+    title:'Introduction to Cellular Respiration',
+    objectives:'Explain the stages of cellular respiration\nIdentify the role of mitochondria in energy production\nCompare aerobic and anaerobic respiration',
+    topics:'Glycolysis\nKrebs cycle\nElectron transport chain\nAerobic vs anaerobic respiration',
+    terms:'mitochondria, ATP, glycolysis, Krebs cycle, electron transport chain',
+    audience:'Community college, intro biology, mixed-level adults',
+    activities:['interactive learning activities','labs','assessments'],
+    ada:true, analogies:true
+  },
+  writing:{
+    title:'Crafting a Strong Thesis Statement',
+    objectives:'Identify the components of an effective thesis statement\nDraft a thesis statement for an argumentative essay\nRevise a thesis statement based on peer feedback',
+    topics:'What makes a thesis arguable\nNarrowing a topic\nThesis placement and structure\nPeer review strategies',
+    terms:'thesis statement, claim, counterargument, scope',
+    audience:'Community college, first-year composition, mixed-level adults',
+    activities:['interactive learning activities','team projects','assessments'],
+    ada:true, analogies:true
+  },
+  history:{
+    title:'Causes of the Industrial Revolution',
+    objectives:'Identify key economic and social causes of the Industrial Revolution\nAnalyze primary source documents from the period\nEvaluate the long-term impacts of industrialization',
+    topics:'Agricultural changes\nTechnological innovations\nUrbanization\nLabor conditions',
+    terms:'industrialization, urbanization, labor union, mechanization',
+    audience:'Community college, intro history survey course',
+    activities:['interactive learning activities','case studies','assessments'],
+    ada:true, analogies:true
+  },
+  math:{
+    title:'Solving Systems of Linear Equations',
+    objectives:'Solve systems of equations using substitution and elimination\nGraph systems of equations to find solutions\nApply systems of equations to real-world problems',
+    topics:'Substitution method\nElimination method\nGraphing systems\nApplications and word problems',
+    terms:'system of equations, substitution, elimination, intersection point',
+    audience:'Community college, developmental or intro algebra',
+    activities:['interactive learning activities','labs','assessments'],
+    ada:true, analogies:true
+  }
+};
+
+function applyPreset(){
+  const key=document.getElementById('preset').value;
+  if(!key) return;
+  const p=presets[key];
+  document.getElementById('title').value=p.title;
+  document.getElementById('objectives').value=p.objectives;
+  document.getElementById('topics').value=p.topics;
+  document.getElementById('terms').value=p.terms;
+  document.getElementById('audience').value=p.audience;
+  document.querySelectorAll('.checks input[type=checkbox]').forEach(c=>{
+    c.checked=p.activities.includes(c.value);
+  });
+  document.getElementById('ada').checked=p.ada;
+  document.getElementById('analogies').checked=p.analogies;
+  updateCount('objectives');
+  updateCount('topics');
+  saveData();
+}
+
+function updateCount(id){
+  const text=document.getElementById(id).value.trim();
+  const words=text? text.split(/\s+/).length : 0;
+  document.getElementById('count-'+id).textContent=words+' words';
+}
+
+function saveData(){
+  const data={};
+  fields.forEach(f=>data[f]=document.getElementById(f).value);
+  data.activities=[...document.querySelectorAll('.checks input:checked')].map(c=>c.value);
+  data.ada=document.getElementById('ada').checked;
+  data.analogies=document.getElementById('analogies').checked;
+  data.detail=document.querySelector('input[name=detail]:checked').value;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function loadData(){
+  const raw=localStorage.getItem(STORAGE_KEY);
+  if(!raw) return;
+  try{
+    const data=JSON.parse(raw);
+    fields.forEach(f=>{ if(data[f]!==undefined) document.getElementById(f).value=data[f]; });
+    if(data.activities){
+      document.querySelectorAll('.checks input[type=checkbox]').forEach(c=>{
+        c.checked=data.activities.includes(c.value);
+      });
+    }
+    if(data.ada!==undefined) document.getElementById('ada').checked=data.ada;
+    if(data.analogies!==undefined) document.getElementById('analogies').checked=data.analogies;
+    if(data.detail){
+      const r=document.querySelector(`input[name=detail][value="${data.detail}"]`);
+      if(r) r.checked=true;
+    }
+    updateCount('objectives');
+    updateCount('topics');
+  }catch(e){}
+}
+
+function clearForm(){
+  if(!confirm('Clear all fields and saved data?')) return;
+  fields.forEach(f=>document.getElementById(f).value='');
+  document.querySelectorAll('.checks input[type=checkbox]').forEach(c=>c.checked=false);
+  document.getElementById('ada').checked=false;
+  document.getElementById('analogies').checked=false;
+  document.querySelector('input[name=detail][value="detailed"]').checked=true;
+  document.getElementById('preset').value='';
+  document.getElementById('output').textContent='';
+  updateCount('objectives');
+  updateCount('topics');
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  loadData();
+  document.querySelectorAll('input, textarea, select').forEach(el=>{
+    el.addEventListener('change', saveData);
+    el.addEventListener('input', saveData);
+  });
+});
+
+function validate(){
+  let valid=true;
+  const title=document.getElementById('title');
+  const objectives=document.getElementById('objectives');
+  document.getElementById('err-title').style.display='none';
+  document.getElementById('err-objectives').style.display='none';
+  title.classList.remove('error');
+  objectives.classList.remove('error');
+
+  if(!title.value.trim()){
+    title.classList.add('error');
+    document.getElementById('err-title').style.display='block';
+    valid=false;
+  }
+  if(!objectives.value.trim()){
+    objectives.classList.add('error');
+    document.getElementById('err-objectives').style.display='block';
+    valid=false;
+  }
+  return valid;
+}
+
+function generate(){
+  if(!validate()){
+    document.getElementById('output').textContent='Please fill in the required fields marked with *.';
+    return;
+  }
+
+  const title=document.getElementById('title').value;
+  const objectives=document.getElementById('objectives').value.split('\n').filter(x=>x.trim()).map(x=>'- '+x).join('\n');
+  const topics=document.getElementById('topics').value.split('\n').filter(x=>x.trim()).map(x=>'- '+x).join('\n')||'- [Add topics]';
+  const terms=document.getElementById('terms').value||'[Add key terms]';
+  const audience=document.getElementById('audience').value||'[Describe audience]';
+  const activities=[...document.querySelectorAll('.checks input:checked')].map(c=>c.value);
+  const ada=document.getElementById('ada').checked;
+  const analogies=document.getElementById('analogies').checked;
+  const notes=document.getElementById('notes').value;
+  const detail=document.querySelector('input[name=detail]:checked').value;
+
+  let prompt=`Act as an experienced community college professor and instructional designer. Create a `;
+  prompt+= detail==='quick' ? `concise, high-level lesson OUTLINE (bullet points, not fully written out)` : `complete, ready-to-teach, detailed lesson plan`;
+  prompt+=` with the following specifications:\n\n`;
+
+  prompt+=`LESSON TITLE: ${title}\n\n`;
+  prompt+=`LEARNING OBJECTIVES:\n${objectives}\n\n`;
+  prompt+=`TOPICS COVERED:\n${topics}\n\n`;
+  prompt+=`KEY TERMS TO DEFINE AND INCORPORATE:\n${terms}\n\n`;
+  prompt+=`AUDIENCE:\n${audience}\n\n`;
+
+  if(activities.length){
+    prompt+=`ACTIVITIES TO INCLUDE:\nPlease design the lesson to include the following activity types:\n`;
+    activities.forEach(a=>prompt+=`- ${a}\n`);
+    prompt+='\n';
+  }
+
+  if(analogies){
+    prompt+=`ANALOGIES & REAL-WORLD EXAMPLES:\nInclude relatable analogies and real-world examples to help students connect abstract concepts to everyday experiences.\n\n`;
+  }
+
+  if(ada){
+    prompt+=`ADA COMPLIANCE:\nEnsure all materials and activities are ADA compliant. Suggest accommodations (e.g., alt text for images, captioned videos, screen-reader-friendly formatting, multiple ways to demonstrate understanding) and note any accessibility considerations.\n\n`;
+  }
+
+  if(notes.trim()){
+    prompt+=`ADDITIONAL NOTES:\n${notes}\n\n`;
+  }
+
+  if(detail==='quick'){
+    prompt+=`FORMAT:\nKeep this brief and skimmable - use short bullet points under each heading (Objectives, Topics, Key Terms, Activity Ideas, Assessment Idea). Avoid long paragraphs.`;
+  }else{
+    prompt+=`FORMAT:\nOrganize the output with clear headings for each section (Objectives, Topics, Key Terms with definitions, Lesson Outline/Timeline, Activities, Assessment, ADA Accommodations, Analogies/Examples). Keep language clear and practical for classroom use.`;
+  }
+
+  document.getElementById('output').textContent=prompt;
+}
+
+function copyOutput(){
+  const text=document.getElementById('output').textContent;
+  if(!text) return;
+  navigator.clipboard.writeText(text);
+  alert('Prompt copied to clipboard!');
+}
+
+function downloadOutput(){
+  const text=document.getElementById('output').textContent;
+  if(!text){ alert('Generate a prompt first.'); return; }
+  const titleVal=document.getElementById('title').value || 'lesson-prompt';
+  const filename=titleVal.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')+'.txt';
+  const blob=new Blob([text],{type:'text/plain'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
